@@ -257,18 +257,17 @@ public class LoginSessionHandler implements MinecraftSessionHandler {
                 return CompletableFuture.completedFuture(null);
             }
 
-            logger.info("{} has connected", player);
+            logger.info("{0} has connected", player);
 
             return server.getEventManager()
                     .fire(new PermissionsSetupEvent(player, ConnectedPlayer.DEFAULT_PERMISSIONS))
                     .thenAcceptAsync(event -> {
                         if (!mcConnection.isClosed()) {
-                            // wait for permissions to load, then set the players permission function
                             final PermissionFunction function = event.createFunction(player);
                             if (function == null) {
                                 logger.error(
-                                        "A plugin permission provider {} provided an invalid permission function"
-                                                + " for player {}. This is a bug in the plugin, not in Velocity. Falling"
+                                        "A plugin permission provider {0} provided an invalid permission function"
+                                                + " for player {1}. This is a bug in the plugin, not in Velocity. Falling"
                                                 + " back to the default permission function.",
                                         event.getProvider().getClass().getName(),
                                         player.getUsername());
@@ -279,7 +278,7 @@ public class LoginSessionHandler implements MinecraftSessionHandler {
                         }
                     }, mcConnection.eventLoop());
         }, mcConnection.eventLoop()).exceptionally((ex) -> {
-            logger.error("Exception during connection of {}", finalProfile, ex);
+            logger.error("Exception during connection of {0}", finalProfile, ex);
             return null;
         });
     }

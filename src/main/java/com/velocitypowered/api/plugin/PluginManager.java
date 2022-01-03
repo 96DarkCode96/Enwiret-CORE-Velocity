@@ -18,55 +18,55 @@ import java.util.Optional;
  */
 public interface PluginManager {
 
-  /**
-   * Gets the plugin container from an instance.
-   *
-   * @param instance the instance
-   * @return the container
-   */
-  Optional<PluginContainer> fromInstance(Object instance);
+    /**
+     * Gets the plugin container from an instance.
+     *
+     * @param instance the instance
+     * @return the container
+     */
+    Optional<PluginContainer> fromInstance(Object instance);
 
-  /**
-   * Retrieves a {@link PluginContainer} based on its ID.
-   *
-   * @param id the plugin ID
-   * @return the plugin, if available
-   */
-  Optional<PluginContainer> getPlugin(String id);
+    /**
+     * Retrieves a {@link PluginContainer} based on its ID.
+     *
+     * @param id the plugin ID
+     * @return the plugin, if available
+     */
+    Optional<PluginContainer> getPlugin(String id);
 
-  /**
-   * Gets a {@link Collection} of all {@link PluginContainer}s.
-   *
-   * @return the plugins
-   */
-  Collection<PluginContainer> getPlugins();
+    /**
+     * Gets a {@link Collection} of all {@link PluginContainer}s.
+     *
+     * @return the plugins
+     */
+    Collection<PluginContainer> getPlugins();
 
-  /**
-   * Checks if a plugin is loaded based on its ID.
-   *
-   * @param id the id of the plugin
-   * @return {@code true} if loaded
-   */
-  boolean isLoaded(String id);
+    /**
+     * Checks if a plugin is loaded based on its ID.
+     *
+     * @param id the id of the plugin
+     * @return {@code true} if loaded
+     */
+    boolean isLoaded(String id);
 
-  /**
-   * Adds the specified {@code path} to the plugin classpath.
-   *
-   * @param plugin the plugin
-   * @param path the path to the JAR you want to inject into the classpath
-   * @throws UnsupportedOperationException if the operation is not applicable to this plugin
-   */
-  void addToClasspath(Object plugin, Path path);
+    /**
+     * Adds the specified {@code path} to the plugin classpath.
+     *
+     * @param plugin the plugin
+     * @param path   the path to the JAR you want to inject into the classpath
+     * @throws UnsupportedOperationException if the operation is not applicable to this plugin
+     */
+    void addToClasspath(Object plugin, Path path);
 
-  /**
-   * Ensures a plugin container exists for the given {@code plugin}.
-   *
-   * @param plugin the instance to look up the container for
-   * @return container for the plugin
-   */
-  default PluginContainer ensurePluginContainer(Object plugin) {
-    return this.fromInstance(plugin)
-        .orElseThrow(() -> new IllegalArgumentException(plugin.getClass().getCanonicalName()
-            + " does not have a container."));
-  }
+    /**
+     * Ensures a plugin container exists for the given {@code plugin}.
+     *
+     * @param plugin the instance to look up the container for
+     * @return container for the plugin
+     */
+    default PluginContainer ensurePluginContainer(Object plugin) {
+        return this.fromInstance(plugin)
+                .orElseThrow(() -> new IllegalArgumentException(plugin.getClass().getCanonicalName()
+                        + " does not have a container."));
+    }
 }

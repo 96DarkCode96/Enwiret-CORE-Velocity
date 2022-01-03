@@ -58,42 +58,35 @@ public class VelocityConfiguration implements ProxyConfig {
     @Expose
     private final Query query;
     private final Metrics metrics;
+    private final String mongoDB;
     @Expose
-    private String bind = "0.0.0.0:25577";
+    private final String bind;
     @Expose
-    private String motd = "&3A Velocity Server";
+    private final String motd;
     @Expose
-    private int showMaxPlayers = 500;
+    private final int showMaxPlayers;
     @Expose
-    private boolean onlineMode = false;
+    private final boolean onlineMode = false;
     @Expose
-    private boolean preventClientProxyConnections = false;
+    private final boolean preventClientProxyConnections;
     @Expose
-    private PlayerInfoForwarding playerInfoForwardingMode = PlayerInfoForwarding.NONE;
-    private byte[] forwardingSecret = generateRandomString(12).getBytes(StandardCharsets.UTF_8);
+    private final PlayerInfoForwarding playerInfoForwardingMode;
+    private byte[] forwardingSecret = generateRandomString().getBytes(StandardCharsets.UTF_8);
     @Expose
-    private boolean announceForge = false;
+    private final boolean announceForge;
     @Expose
-    private boolean onlineModeKickExistingPlayers = false;
+    private final boolean onlineModeKickExistingPlayers;
     @Expose
-    private PingPassthroughMode pingPassthrough = PingPassthroughMode.DISABLED;
+    private final PingPassthroughMode pingPassthrough;
     private net.kyori.adventure.text.@MonotonicNonNull Component motdAsComponent;
     private @Nullable Favicon favicon;
 
-    private VelocityConfiguration(Servers servers, ForcedHosts forcedHosts, Advanced advanced,
-                                  Query query, Metrics metrics) {
-        this.servers = servers;
-        this.forcedHosts = forcedHosts;
-        this.advanced = advanced;
-        this.query = query;
-        this.metrics = metrics;
-    }
-
-    private VelocityConfiguration(String bind, String motd, int showMaxPlayers,
+    private VelocityConfiguration(String mongoDB, String bind, String motd, int showMaxPlayers,
                                   boolean preventClientProxyConnections, boolean announceForge,
                                   PlayerInfoForwarding playerInfoForwardingMode, byte[] forwardingSecret,
                                   boolean onlineModeKickExistingPlayers, PingPassthroughMode pingPassthrough, Servers servers,
                                   ForcedHosts forcedHosts, Advanced advanced, Query query, Metrics metrics) {
+        this.mongoDB = mongoDB;
         this.bind = bind;
         this.motd = motd;
         this.showMaxPlayers = showMaxPlayers;
@@ -110,13 +103,6 @@ public class VelocityConfiguration implements ProxyConfig {
         this.metrics = metrics;
     }
 
-    /**
-     * Reads the Velocity configuration from {@code path}.
-     *
-     * @param path the path to read from
-     * @return the deserialized Velocity configuration
-     * @throws IOException if we could not read from the {@code path}.
-     */
     public static VelocityConfiguration read(Path path) throws IOException {
         URL defaultConfigLocation = VelocityConfiguration.class.getClassLoader()
                 .getResource("default-velocity.toml");
@@ -149,7 +135,7 @@ public class VelocityConfiguration implements ProxyConfig {
         String forwardingSecretString = System.getenv()
                 .getOrDefault("VELOCITY_FORWARDING_SECRET", config.get("forwarding-secret"));
         if (forwardingSecretString == null || forwardingSecretString.isEmpty()) {
-            forwardingSecretString = generateRandomString(12);
+            forwardingSecretString = generateRandomString();
             config.set("forwarding-secret", forwardingSecretString);
             mustResave = true;
         }
@@ -173,6 +159,7 @@ public class VelocityConfiguration implements ProxyConfig {
 
         String bind = config.getOrElse("bind", "0.0.0.0:25577");
         String motd = config.getOrElse("motd", "&#09add3A Velocity Server");
+        String mongoDBURL = config.getOrElse("mongoDB", "mongodb://username:password@host:port");
         int maxPlayers = config.getIntOrElse("show-max-players", 500);
         Boolean announceForge = config.getOrElse("announce-forge", true);
         Boolean preventClientProxyConnections = config.getOrElse("prevent-client-proxy-connections",
@@ -180,6 +167,7 @@ public class VelocityConfiguration implements ProxyConfig {
         Boolean kickExisting = config.getOrElse("kick-existing-players", false);
 
         return new VelocityConfiguration(
+                mongoDBURL,
                 bind,
                 motd,
                 maxPlayers,
@@ -197,21 +185,16 @@ public class VelocityConfiguration implements ProxyConfig {
         );
     }
 
-    private static String generateRandomString(int length) {
+    private static String generateRandomString() {
         String chars = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890";
         StringBuilder builder = new StringBuilder();
         Random rnd = new SecureRandom();
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < 12; i++) {
             builder.append(chars.charAt(rnd.nextInt(chars.length())));
         }
         return builder.toString();
     }
 
-    /**
-     * Attempts to validate the configuration.
-     *
-     * @return {@code true} if the configuration is sound, {@code false} if not
-     */
     public boolean validate() {
         boolean valid = true;
 
@@ -225,11 +208,6 @@ public class VelocityConfiguration implements ProxyConfig {
                 logger.error("'bind' option does not specify a valid IP address.", e);
                 valid = false;
             }
-        }
-
-        if (!onlineMode) {
-            logger.warn("The proxy is running in offline mode! This is a security risk and you will NOT "
-                    + "receive any support!");
         }
 
         switch (playerInfoForwardingMode) {
@@ -439,10 +417,6 @@ public class VelocityConfiguration implements ProxyConfig {
         return advanced.tcpFastOpen;
     }
 
-    public Metrics getMetrics() {
-        return metrics;
-    }
-
     public PingPassthroughMode getPingPassthrough() {
         return pingPassthrough;
     }
@@ -486,6 +460,10 @@ public class VelocityConfiguration implements ProxyConfig {
 
     public boolean isOnlineModeKickExistingPlayers() {
         return onlineModeKickExistingPlayers;
+    }
+
+    public String getMongoDB() {
+        return mongoDB;
     }
 
     private static class Servers {
