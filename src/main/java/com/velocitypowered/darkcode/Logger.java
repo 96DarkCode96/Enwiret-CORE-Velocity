@@ -2,6 +2,9 @@ package com.velocitypowered.darkcode;
 
 import org.fusesource.jansi.Ansi;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -43,11 +46,24 @@ public class Logger {
     private static String WARN = DEFAULT_COLOR + "[%1$s] %2$s : \u001B[33m%3$s" + RESET;
     private String name;
     private Logger.Level level;
+    private PrintStream p;
     private boolean debug = true;
 
     public Logger(String name, Level level) {
         this.name = name;
         this.level = level;
+        this.p = new PrintStream(new OutputStream() {
+            StringBuilder a = new StringBuilder();
+            @Override
+            public void write(int b) {
+                if(b == '\n'){
+                    error(a.toString());
+                    a = new StringBuilder();
+                    return;
+                }
+                a.append(new String(new byte[]{(byte)b}));
+            }
+        });
     }
 
     private static ReplacementSpecification compile(ChatColor color, String ansi) {
@@ -78,22 +94,38 @@ public class Logger {
         this.level = level;
     }
 
+    public PrintStream getErrorStream(){
+        return p;
+    }
+
     public void debug(String msgFormat, Object... toFormat) {
         if (!debug) {
+            return;
+        }
+        if(level.equals(Level.OFF)){
             return;
         }
         System.out.printf((DEBUG) + "%n", new SimpleDateFormat("kk:mm:ss").format(Calendar.getInstance().getTime()), name, format(msgFormat, toFormat));
     }
 
     public void error(String msgFormat, Object... toFormat) {
+        if(level.equals(Level.OFF)){
+            return;
+        }
         System.out.printf((ERROR) + "%n", new SimpleDateFormat("kk:mm:ss").format(Calendar.getInstance().getTime()), name, format(msgFormat, toFormat));
     }
 
     public void warn(String msgFormat, Object... toFormat) {
+        if(level.equals(Level.OFF)){
+            return;
+        }
         System.out.printf((WARN) + "%n", new SimpleDateFormat("kk:mm:ss").format(Calendar.getInstance().getTime()), name, format(msgFormat, toFormat));
     }
 
     public void info(String msgFormat, Object... toFormat) {
+        if(level.equals(Level.OFF)){
+            return;
+        }
         System.out.printf((INFO) + "%n", new SimpleDateFormat("kk:mm:ss").format(Calendar.getInstance().getTime()), name, format(msgFormat, toFormat));
     }
 

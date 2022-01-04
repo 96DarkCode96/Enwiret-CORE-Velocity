@@ -23,8 +23,9 @@ import com.mojang.brigadier.tree.RootCommandNode;
 import com.velocitypowered.api.command.Command;
 import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.proxy.command.VelocityCommands;
-import java.util.concurrent.locks.Lock;
 import org.checkerframework.checker.lock.qual.GuardedBy;
+
+import java.util.concurrent.locks.Lock;
 
 /**
  * Base class for {@link CommandRegistrar} implementations.
@@ -33,29 +34,29 @@ import org.checkerframework.checker.lock.qual.GuardedBy;
  */
 abstract class AbstractCommandRegistrar<T extends Command> implements CommandRegistrar<T> {
 
-  private final @GuardedBy("lock") RootCommandNode<CommandSource> root;
-  private final Lock lock;
+    private final @GuardedBy("lock") RootCommandNode<CommandSource> root;
+    private final Lock lock;
 
-  protected AbstractCommandRegistrar(final RootCommandNode<CommandSource> root, final Lock lock) {
-    this.root = Preconditions.checkNotNull(root, "root");
-    this.lock = Preconditions.checkNotNull(lock, "lock");
-  }
-
-  protected void register(final LiteralCommandNode<CommandSource> node) {
-    lock.lock();
-    try {
-      // Registration overrides previous aliased command
-      root.removeChildByName(node.getName());
-      root.addChild(node);
-    } finally {
-      lock.unlock();
+    protected AbstractCommandRegistrar(final RootCommandNode<CommandSource> root, final Lock lock) {
+        this.root = Preconditions.checkNotNull(root, "root");
+        this.lock = Preconditions.checkNotNull(lock, "lock");
     }
-  }
 
-  protected void register(final LiteralCommandNode<CommandSource> node,
-                          final String secondaryAlias) {
-    final LiteralCommandNode<CommandSource> copy =
-            VelocityCommands.shallowCopy(node, secondaryAlias);
-    this.register(copy);
-  }
+    protected void register(final LiteralCommandNode<CommandSource> node) {
+        lock.lock();
+        try {
+            // Registration overrides previous aliased command
+            root.removeChildByName(node.getName());
+            root.addChild(node);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    protected void register(final LiteralCommandNode<CommandSource> node,
+                            final String secondaryAlias) {
+        final LiteralCommandNode<CommandSource> copy =
+                VelocityCommands.shallowCopy(node, secondaryAlias);
+        this.register(copy);
+    }
 }

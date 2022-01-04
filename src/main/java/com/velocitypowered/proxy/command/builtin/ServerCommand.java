@@ -55,7 +55,7 @@ public class ServerCommand implements SimpleCommand {
         final String[] args = invocation.arguments();
 
         if (!(source instanceof Player)) {
-            source.sendMessage(Identity.nil(), CommandMessages.PLAYERS_ONLY);
+            source.sendMessage(Identity.nil(), CommandMessages.NO_PERMISSION.apply("Player only"));
             return;
         }
 

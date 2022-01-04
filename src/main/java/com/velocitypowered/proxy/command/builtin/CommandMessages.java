@@ -18,13 +18,17 @@
 package com.velocitypowered.proxy.command.builtin;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 
+import java.util.function.Function;
+import java.util.function.Supplier;
+
 public class CommandMessages {
 
-  public static final TranslatableComponent PLAYERS_ONLY = Component.translatable(
-      "velocity.command.players-only", NamedTextColor.RED);
+  public static final Function<String, TextComponent> NO_PERMISSION =
+          (s) -> Component.text("No permissions! (" + s + ")", NamedTextColor.RED);
   public static final TranslatableComponent SERVER_DOES_NOT_EXIST = Component.translatable(
       "velocity.command.server-does-not-exist", NamedTextColor.RED);
 }

@@ -34,6 +34,7 @@ import com.velocitypowered.api.util.Favicon;
 import com.velocitypowered.api.util.GameProfile;
 import com.velocitypowered.api.util.ProxyVersion;
 import com.velocitypowered.darkcode.*;
+import com.velocitypowered.darkcode.commands.PermissionsCommand;
 import com.velocitypowered.proxy.command.VelocityCommandManager;
 import com.velocitypowered.proxy.command.builtin.GlistCommand;
 import com.velocitypowered.proxy.command.builtin.ServerCommand;
@@ -177,7 +178,7 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
         // Initialize commands first
         commandManager.register("server", new ServerCommand(this));
         commandManager.register("shutdown", new ShutdownCommand(this), "end");
-        commandManager.register
+        commandManager.register("permissions", new PermissionsCommand(this), "permission", "perms", "lp", "pex", "pm");
         new GlistCommand(this).register();
 
         this.doStartupConfigLoad();
@@ -256,10 +257,15 @@ public class VelocityServer implements ProxyServer, ForwardingAudience {
             }
 
             commandManager.setAnnounceProxyCommands(configuration.isAnnounceProxyCommands());
-            MongoDB.init(this);
         } catch (Exception e) {
             logger.error("Unable to read/load/save your velocity.toml. The server will shut down.", e);
             System.exit(1);
+        }
+        try{
+            MongoDB.init(this);
+        }catch(Throwable e){
+            e.printStackTrace();
+            shutdown(true);
         }
     }
 
