@@ -325,13 +325,13 @@ public class LoginSessionHandler implements MinecraftSessionHandler {
                         server.getEventManager().fire(new PostLoginEvent(player))
                                 .thenCompose((ignored) -> connectToInitialServer(player))
                                 .exceptionally((ex) -> {
-                                    logger.error("Exception while connecting {} to initial server", player, ex);
+                                    logger.error("Exception while connecting {0} to initial server", player, ex);
                                     return null;
                                 });
                     }
                 }, mcConnection.eventLoop())
                 .exceptionally((ex) -> {
-                    logger.error("Exception while completing login initialisation phase for {}", player, ex);
+                    logger.error("Exception while completing login initialisation phase for {0}", player, ex);
                     return null;
                 });
     }

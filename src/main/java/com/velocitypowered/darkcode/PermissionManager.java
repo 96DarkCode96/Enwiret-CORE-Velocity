@@ -28,13 +28,6 @@ public class PermissionManager {
         }
     }
 
-    /**
-     *
-     * @param subject   Player
-     * @param permission
-     * @param tristate
-     */
-
     public static void setPermission(@NotNull PermissionSubject subject, @NotNull String permission, @NotNull Tristate tristate){
         if(!(subject instanceof ConnectedPlayer)){
             return;
